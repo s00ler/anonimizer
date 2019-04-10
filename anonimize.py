@@ -1,13 +1,13 @@
 import ssl
+import sys
 import random
 import argparse
+
 from hashlib import md5
 
 from deeppavlov import configs, build_model
 
 parser = argparse.ArgumentParser(description='Anonimize some text.')
-parser.add_argument('-i', '--input', type=str, help='input file path')
-parser.add_argument('-o', '--output', type=str, help='output file path')
 parser.add_argument('-s', '--seed', type=int, help='random seed', default=0)
 parser.add_argument('--use_hash', action='store_true', default=False)
 parser.add_argument('--names_path', type=str, help='path to names file', default='./names.csv')
@@ -20,34 +20,6 @@ def is_english(s):
         return False
     else:
         return True
-
-
-def deal_with_file(input_file, output_file, model, names):
-    personas = set()
-    lines = []
-
-    with open(input_file, 'r') as f:
-        for line in f.readlines():
-            if line == '\n':
-                continue
-            tokens, tags = model([line.strip()])
-            if tags and tokens:
-                for token, tag in zip(tokens[0], tags[0]):
-                    if not is_english(token) and '-PER' in tag:
-                        if token not in personas:
-                            personas.add(token)
-            lines.append(line)
-
-    if names is None:
-        replace_map = {p: md5(p.encode('utf-8')).hexdigest() for p in personas}
-    else:
-        replace_map = names
-
-    with open(output_file, 'w') as f:
-        for line in lines:
-            for key in personas:
-                line = line.replace(key, replace_map.get(key, key))
-            f.write(line)
 
 
 if __name__ == '__main__':
@@ -75,4 +47,27 @@ if __name__ == '__main__':
         names = {n: r for n, r in zip(names, replaces)}
 
     # Сюда можно прихерачить обход директории и тд и тп
-    deal_with_file(args.input, args.output, ner, names)
+    personas = set()
+    lines = []
+
+    for line in sys.stdin:
+        if line == '\n':
+            continue
+
+        tokens, tags = ner([line.strip()])
+        if tags and tokens:
+            for token, tag in zip(tokens[0], tags[0]):
+                if not is_english(token) and '-PER' in tag:
+                    if token not in personas:
+                        personas.add(token)
+        lines.append(line)
+
+    if names is None:
+        replace_map = {p: md5(p.encode('utf-8')).hexdigest() for p in personas}
+    else:
+        replace_map = names
+
+    for line in lines:
+        for key in personas:
+            line = line.replace(key, replace_map.get(key, key))
+        sys.stdout.write(line)

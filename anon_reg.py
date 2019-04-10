@@ -3,10 +3,10 @@ import sys
 from hashlib import md5
 
 full_fio_reg = (
-    r'(?P<last_name>[А-ЯЁ][а-яёА-ЯЁ]{1,})(, | )' +
-    r'(?P<name>[А-ЯЁ][а-яёА-ЯЁ]{1,}) (?P<sur_name>[А-ЯЁ][а-яёА-ЯЁ]{1,})'
+    r'(?P<last_name>[А-ЯЁ][а-яё]{1,})(, | )' +
+    r'(?P<name>[А-ЯЁ][а-яё]{1,}) (?P<sur_name>[А-ЯЁ][а-яё]{1,})'
 )
-short_fio_reg = r'(?P<last_name_1>[А-ЯЁ][а-яёА-ЯЁ]{1,}) (?P<initials>[А-ЯЁ]\.[А-ЯЁ]\.)'
+short_fio_reg = r'(?P<last_name_1>[А-ЯЁ][а-яё]{1,}) (?P<initials>[А-ЯЁ]\.[А-ЯЁ]\.)'
 login_reg = r'(?P<login>\(\w+-\w{1,}\))'
 
 reg = r'({})'.format(r'|'.join([full_fio_reg, short_fio_reg, login_reg]))
